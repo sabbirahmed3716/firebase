@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>User Login</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: rgba(0, 250, 0, 0.03);
+    }
+
+    .login-btn {
+      width: 48%;
+      display: inline-block;
+      padding: 10px;
+      background: rgba(0, 100, 100, 0.1);
+      color: black;
+      border: none;
+      box-shadow: 1px 1px 1px grey,
+        inset 2px 2px 1px grey;
+      outline: none;
+      float: left;
+      margin: 1%;
+      border-radius: 3px;
+    }
+
+    .active {
+      background: rgba(0, 100, 100, 1);
+      box-shadow: none;
+      color: white;
+      box-shadow:
+        1px 1px 0px grey;
+    }
+
+    main h2,
+    h4 {
+      text-align: center;
+      color: coral;
+      margin: 10px;
+    }
+
+    .container {
+      width: 90%;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    /*------------login----------*/
+
+    .f-c {
+      width: 100%;
+      color: grey;
+      margin-top: 20px;
+    }
+
+    .f-c label {
+      display: block;
+      margin: 5px auto;
+    }
+
+    .f-c input {
+      padding: 10px 0px 10px 10px;
+      width: 100%;
+      background: white;
+      outline: none;
+      border: 1px solid rgba(0, 100, 100, 0.2);
+    }
+
+    .submit-btn {
+      display: block;
+      width: 50%;
+      min-width: 150px;
+      border: none;
+      outline: none;
+      background: rgb(10, 50, 100);
+      color: white;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 100px;
+    }
+
+    /*------------register----------*/
+    #register {
+      display: none;
+    }
+
+    .req::after {
+      content: '*';
+      color: red;
+      font-size: 1.4rem;
+      padding: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <button onclick="openLogin()" id="login-btn" class="active login-btn">Login</button>
+    <button onclick="openRegister()" id="register-btn" class="login-btn">Register Now</button>
+  </main>
+  <br>
+  <section id="login" class="container">
+    <form id="login-form" onsubmit="uLogin()">
+      <div class="f-c">
+        <label for="email" class="req">Email</label>
+        <input required="required" type="email" name="email" id="mail" placeholder="ex - example@abc.com">
+      </div>
+      <div class="f-c">
+        <label for="pass" class="req">Password</label>
+        <input required="required" type="password" name="pass" id="pass" placeholder="Password">
+      </div>
+      <div style="padding: 20px 0;">
+        <div>
+          <input style="" type="checkbox" name="remember" id="remember">
+          <label style="" for="remember">Remember Me</label>
+        </div>
+      </div>
+      <input type="button" class="submit-btn" value="Login" id="userLogin">
+    </form>
+  </section>
+
+
+
+  <section id="register" class="container">
+    <form id="register-form">
+      <div class="f-c">
+        <label for="email" class="req">Email</label>
+        <input required="required" type="email" name="email" id="email" placeholder="ex - example@abc.com">
+      </div>
+      <div class="f-c">
+        <label for="name" class="req">Name</label>
+        <input required="required" type="text" name="name" id="full_name" placeholder="Name">
+      </div>
+      <div class="f-c">
+        <label for="pass" class="req">Password</label>
+        <input required="required" type="password" name="pass" id="password" placeholder="Password">
+      </div>
+      <div class="f-c">
+        <label for="favourite">Favourite Gojol</label>
+        <input type="text" name="favourite" id="favourite" placeholder="Favourite Gojol">
+      </div>
+      <button type="button" id="userRegister" class="submit-btn"> Register</button>
+    </form>
+
+  </section>
+
+
+  <!-------------------------------
+		Firebase Authentication
+	-------------------------------->
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+    import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhfsni5uwrV-5LIbor5ZnNxsAIHezhw4w",
+      authDomain: "first-web-project-1698e.firebaseapp.com",
+      projectId: "first-web-project-1698e",
+      storageBucket: "gs://first-web-project-1698e.appspot.com",
+      databaseURL: "https://first-web-project-1698e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      messagingSenderId: "583106204629",
+      appId: "1:583106204629:web:f0272b3199230e67c0e35c",
+      measurementId: "G-WMVXDGNTP3"
+    };
+
+    //itialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+    const auth = getAuth();
+
+
+    // Login user Automatically If Remember login is checked
+    if (localStorage.rememberLogin == "true") {
+  //    window.location.href = "dashboard.html";
+    }
+
+    // Create All Global Variable for work
+    var email, favourite, lpass, lemail, password, full_name,
+      loginBtn = document.getElementById("login-btn"),
+      regBtn = document.getElementById("register-btn"),
+      reg = document.getElementById("userRegister"),
+      logIn = document.getElementById("userLogin"),
+      regSec = document.getElementById("register"),
+      loginSec = document.getElementById("login"),
+      lForm = document.getElementById("login-form"),
+      rForm = document.getElementById("register-form"),
+      rememberLogin = document.getElementById("remember");
+
+
+    // Added event listener when user clicked register or login button
+    logIn.onclick = login;
+    reg.onclick = register;
+    loginBtn.onclick = openLogin;
+    regBtn.onclick = openRegister;
+
+    // Store data to variable
+    function rdy() {
+      email = document.getElementById('email').value;
+      lpass = document.getElementById('pass').value;
+      lemail = document.getElementById('mail').value;
+      password = document.getElementById('password').value;
+      favourite = document.getElementById('favourite').value;
+      full_name = document.getElementById('full_name').value;
+    }
+
+    // Create an user account
+    function register() {
+      rdy()
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+
+          const user = userCredential.user;
+
+          set(ref(db, "users/" + user.uid), {
+            name: full_name,
+            email: email,
+            favSong: favourite
+          })
+          openLogin()
+          console.log(user.uid)
+        })
+        .catch((error) => {
+          // when registration have any error
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          alert(errorMessage)
+        })
+    }
+
+    // login user account
+    function login() {
+      rdy()
+      signInWithEmailAndPassword(auth, lemail, lpass)
+        .then((userCredential) =>
+        {
+          // Signed in 
+          const user = userCredential.user;
+          update(ref(db, "users/" + user.uid),
+          {
+            last_login: new Date()
+          })
+          if (rememberLogin.checked) {
+            localStorage.rememberLogin = "true";
+          } else {
+            localStorage.rememberLogin = "false";
+          }
+          alert('Login Success')
+          console.log(user.uid)
+        })
+
+        .catch((error) =>
+        {
+          // catch error while login not successed
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          alert(errorMessage)
+        })
+    }
+
+
+    // open login section
+    function openLogin() {
+      loginBtn.classList.add("active");
+      regBtn.classList.remove("active");
+      loginSec.style.display = "block";
+      regSec.style.display = "none";
+    }
+
+    // open register section
+    function openRegister() {
+      regBtn.classList.add("active");
+      loginBtn.classList.remove("active");
+      loginSec.style.display = "none";
+      regSec.style.display = "block";
+    }
+
+
+    /*
+    function uLogin(){
+
+
+
+     if(localStorage.email == lForm.email.value && localStorage.pass == lForm.pass.value){
+    alert("Succes Login")
+    localStorage.loggedIn = "true";
+    window.location.href = "dashboard.html";
+    } else {
+    alert("info not matched");
+    } 
+    }
+
+
+    function uRegister(){
+    localStorage.email = rForm.email.value;
+    localStorage.pass = rForm.pass.value;
+    localStorage.name = rForm.name.value;
+    register()
+    alert("Registration Success")
+    openLogin()
+    }
+    */
+  </script>
+</body>
+
+</html>
